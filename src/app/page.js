@@ -1,7 +1,28 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const AdminLogin = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Hardcoded admin credentials
+    const adminEmail = "admin@example.com";
+    const adminPassword = "admin123";
+
+    if (email === adminEmail && password === adminPassword) {
+      // Login successful - navigate to your existing dashboard
+      router.push("/dashboard");
+    } else {
+      setError("Invalid email or password. Please try again.");
+    }
+  };
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6">
       <div className="flex flex-col sm:flex-row w-full max-w-[950px] bg-white rounded-lg shadow-lg overflow-hidden">
@@ -21,7 +42,13 @@ const AdminLogin = () => {
             Please enter your admin credentials below
           </p>
 
-          <form className="space-y-3 sm:space-y-4">
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-xs text-red-800">{error}</p>
+            </div>
+          )}
+
+          <form className="space-y-3 sm:space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-xs sm:text-sm text-gray-600">
                 Email
@@ -30,6 +57,12 @@ const AdminLogin = () => {
                 type="email"
                 placeholder="Enter admin email"
                 className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError("");
+                }}
+                required
               />
             </div>
             <div>
@@ -40,6 +73,12 @@ const AdminLogin = () => {
                 type="password"
                 placeholder="Enter admin password"
                 className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError("");
+                }}
+                required
               />
             </div>
 
@@ -60,6 +99,13 @@ const AdminLogin = () => {
               Log in
             </button>
           </form>
+
+          {/* Demo credentials hint */}
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-500">
+              Demo: admin@example.com / admin123
+            </p>
+          </div>
         </div>
 
         {/* Right Side - Info Section (Dark Teal) */}
