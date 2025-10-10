@@ -57,43 +57,76 @@ export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [openSections, setOpenSections] = useState({});
 
-  // Shared state for Products, Purchases, HR, Tasks, Attributes
+  // Shared state for all components including Vendors
   const [products, setProducts] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [attributes, setAttributes] = useState([]);
+  const [vendors, setVendors] = useState([]); // ✅ Added vendors state
+  const [isClient, setIsClient] = useState(false);
 
-  // Load from localStorage
+  // Check if we're on the client side
   useEffect(() => {
-    setProducts(JSON.parse(localStorage.getItem("products")) || []);
-    setPurchases(JSON.parse(localStorage.getItem("purchases")) || []);
-    setEmployees(JSON.parse(localStorage.getItem("employees")) || []);
-    setDepartments(JSON.parse(localStorage.getItem("departments")) || []);
-    setTasks(JSON.parse(localStorage.getItem("tasks")) || []);
-    setAttributes(JSON.parse(localStorage.getItem("attributes")) || []);
+    setIsClient(true);
   }, []);
 
-  // Save to localStorage
+  // Load all data from localStorage only on client side
   useEffect(() => {
-    localStorage.setItem("products", JSON.stringify(products));
-  }, [products]);
+    if (isClient) {
+      setProducts(JSON.parse(localStorage.getItem("products")) || []);
+      setPurchases(JSON.parse(localStorage.getItem("purchases")) || []);
+      setEmployees(JSON.parse(localStorage.getItem("employees")) || []);
+      setDepartments(JSON.parse(localStorage.getItem("departments")) || []);
+      setTasks(JSON.parse(localStorage.getItem("tasks")) || []);
+      setAttributes(JSON.parse(localStorage.getItem("attributes")) || []);
+      setVendors(JSON.parse(localStorage.getItem("vendors")) || []); // ✅ Load vendors
+    }
+  }, [isClient]);
+
+  // Save to localStorage whenever state changes
   useEffect(() => {
-    localStorage.setItem("purchases", JSON.stringify(purchases));
-  }, [purchases]);
+    if (isClient) {
+      localStorage.setItem("products", JSON.stringify(products));
+    }
+  }, [products, isClient]);
+
   useEffect(() => {
-    localStorage.setItem("employees", JSON.stringify(employees));
-  }, [employees]);
+    if (isClient) {
+      localStorage.setItem("purchases", JSON.stringify(purchases));
+    }
+  }, [purchases, isClient]);
+
   useEffect(() => {
-    localStorage.setItem("departments", JSON.stringify(departments));
-  }, [departments]);
+    if (isClient) {
+      localStorage.setItem("employees", JSON.stringify(employees));
+    }
+  }, [employees, isClient]);
+
   useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
+    if (isClient) {
+      localStorage.setItem("departments", JSON.stringify(departments));
+    }
+  }, [departments, isClient]);
+
   useEffect(() => {
-    localStorage.setItem("attributes", JSON.stringify(attributes));
-  }, [attributes]);
+    if (isClient) {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+  }, [tasks, isClient]);
+
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem("attributes", JSON.stringify(attributes));
+    }
+  }, [attributes, isClient]);
+
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem("vendors", JSON.stringify(vendors)); // ✅ Save vendors
+    }
+  }, [vendors, isClient]);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const toggleSection = (sectionTitle) =>
@@ -289,7 +322,12 @@ export default function Dashboard() {
         );
 
       case "Vendor":
-        return <VendorComponent />;
+        return (
+          <VendorComponent 
+            vendors={vendors} 
+            setVendors={setVendors} // ✅ Pass vendors state and setter
+          />
+        );
 
       case "Purchase":
         return (
@@ -459,7 +497,6 @@ export default function Dashboard() {
           </button>
           <button className="flex items-center gap-1 p-1 rounded-md hover:bg-gray-900 transition">
             <User className="w-4 h-4 text-black hover:text-white" />
-            {/* <span className="text-black text-xs hidden sm:inline">Profile</span> */}
           </button>
         </div>
       </div>

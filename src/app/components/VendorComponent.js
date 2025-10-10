@@ -1,30 +1,26 @@
 "use client";
-import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, X } from "lucide-react";
+import { useState, Fragment, useEffect } from "react";
+import { Plus, Edit, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
 
-export default function VendorComponent() {
-  const [vendors, setVendors] = useState([]);
+export default function VendorComponent({ vendors, setVendors }) {
   const [form, setForm] = useState({
     id: null,
     name: "",
     email: "",
     phone: "",
-    altPhone: "", // ✅ added alternative number
+    altPhone: "",
     address: "",
     gstin: "",
     pan: "",
     bankAccount: "",
     ifsc: "",
+    company: "",
+    state: "",
   });
   const [showForm, setShowForm] = useState(false);
+  const [expandedVendor, setExpandedVendor] = useState(null);
 
-  // Load vendors
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("vendors")) || [];
-    setVendors(stored);
-  }, []);
-
-  // Save vendors
+  // ✅ Save vendors to localStorage whenever vendors change
   useEffect(() => {
     localStorage.setItem("vendors", JSON.stringify(vendors));
   }, [vendors]);
@@ -58,6 +54,8 @@ export default function VendorComponent() {
       pan: "",
       bankAccount: "",
       ifsc: "",
+      company: "",
+      state: "",
     });
     setShowForm(false);
   };
@@ -65,10 +63,38 @@ export default function VendorComponent() {
   const handleEdit = (vendor) => {
     setForm(vendor);
     setShowForm(true);
+    setExpandedVendor(null);
   };
 
   const handleDelete = (id) => {
-    setVendors(vendors.filter((v) => v.id !== id));
+    if (window.confirm("Are you sure you want to delete this vendor?")) {
+      setVendors(vendors.filter((v) => v.id !== id));
+      if (expandedVendor === id) {
+        setExpandedVendor(null);
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setForm({
+      id: null,
+      name: "",
+      email: "",
+      phone: "",
+      altPhone: "",
+      address: "",
+      gstin: "",
+      pan: "",
+      bankAccount: "",
+      ifsc: "",
+      company: "",
+      state: "",
+    });
+    setShowForm(false);
+  };
+
+  const toggleVendorExpand = (vendorId) => {
+    setExpandedVendor(expandedVendor === vendorId ? null : vendorId);
   };
 
   return (
@@ -94,7 +120,7 @@ export default function VendorComponent() {
               {form.id ? "Edit Vendor" : "Add Vendor"}
             </h3>
             <button
-              onClick={() => setShowForm(false)}
+              onClick={resetForm}
               className="text-gray-500 hover:text-gray-700 transition"
             >
               <X className="h-4 w-4" />
@@ -108,7 +134,7 @@ export default function VendorComponent() {
             {/* Basic Details */}
             <div>
               <label className="block text-gray-700 mb-1 text-sm font-medium">
-                Name
+                Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -118,6 +144,19 @@ export default function VendorComponent() {
                 placeholder="Vendor Name"
                 className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-indigo-400"
                 required
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700 mb-1 text-sm font-medium">
+                Company
+              </label>
+              <input
+                type="text"
+                name="company"
+                value={form.company}
+                onChange={handleChange}
+                placeholder="Company Name"
+                className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm"
               />
             </div>
             <div>
@@ -159,11 +198,24 @@ export default function VendorComponent() {
                 className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm"
               />
             </div>
+            <div>
+              <label className="block text-gray-700 mb-1 text-sm font-medium">
+                State
+              </label>
+              <input
+                type="text"
+                name="state"
+                value={form.state}
+                onChange={handleChange}
+                placeholder="State"
+                className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm"
+              />
+            </div>
 
             {/* GST Related */}
             <div>
               <label className="block text-gray-700 mb-1 text-sm font-medium">
-                GSTIN
+                GSTIN <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -236,7 +288,7 @@ export default function VendorComponent() {
             <div className="md:col-span-2 flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={resetForm}
                 className="px-3 py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 text-sm"
               >
                 Cancel
@@ -260,49 +312,106 @@ export default function VendorComponent() {
         {vendors.length === 0 ? (
           <p className="text-gray-500 text-sm">No vendors added yet.</p>
         ) : (
-          <div className="overflow-x-auto scrollbar-none">
+          <div className="overflow-x-auto">
             <table className="w-full text-sm text-gray-700 border-collapse">
               <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                 <tr>
                   <th className="p-2 text-left">Name</th>
-                  <th className="p-2 text-left">GSTIN</th>
-                  <th className="p-2 text-left">PAN</th>
-                  <th className="p-2 text-left">Email</th>
+                  <th className="p-2 text-left hidden md:table-cell">Company</th>
+                  <th className="p-2 text-left hidden lg:table-cell">GSTIN</th>
+                  <th className="p-2 text-left hidden lg:table-cell">PAN</th>
+                  <th className="p-2 text-left hidden xl:table-cell">Email</th>
                   <th className="p-2 text-left">Phone</th>
-                  <th className="p-2 text-left">Alt. Phone</th>
-                  <th className="p-2 text-left">Bank</th>
-                  <th className="p-2 text-left">IFSC</th>
-                  <th className="p-2 text-left">Address</th>
+                  <th className="p-2 text-left hidden xl:table-cell">State</th>
                   <th className="p-2 text-left">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {vendors.map((vendor) => (
-                  <tr key={vendor.id} className="hover:bg-gray-50">
-                    <td className="p-2">{vendor.name}</td>
-                    <td className="p-2">{vendor.gstin}</td>
-                    <td className="p-2">{vendor.pan}</td>
-                    <td className="p-2">{vendor.email}</td>
-                    <td className="p-2">{vendor.phone}</td>
-                    <td className="p-2">{vendor.altPhone}</td>
-                    <td className="p-2">{vendor.bankAccount}</td>
-                    <td className="p-2">{vendor.ifsc}</td>
-                    <td className="p-2">{vendor.address}</td>
-                    <td className="p-2 flex gap-2">
-                      <button
-                        onClick={() => handleEdit(vendor)}
-                        className="p-1 text-blue-600 hover:text-blue-800"
-                      >
-                        <Edit className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(vendor.id)}
-                        className="p-1 text-red-600 hover:text-red-800"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </td>
-                  </tr>
+                  <Fragment key={vendor.id}>
+                    <tr className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="p-2 font-medium">{vendor.name}</td>
+                      <td className="p-2 hidden md:table-cell">{vendor.company || "-"}</td>
+                      <td className="p-2 hidden lg:table-cell">{vendor.gstin}</td>
+                      <td className="p-2 hidden lg:table-cell">{vendor.pan || "-"}</td>
+                      <td className="p-2 hidden xl:table-cell">{vendor.email || "-"}</td>
+                      <td className="p-2">{vendor.phone || "-"}</td>
+                      <td className="p-2 hidden xl:table-cell">{vendor.state || "-"}</td>
+                      <td className="p-2">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => toggleVendorExpand(vendor.id)}
+                            className="p-1 text-green-600 hover:text-green-800 transition"
+                            title="View Details"
+                          >
+                            {expandedVendor === vendor.id ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleEdit(vendor)}
+                            className="p-1 text-blue-600 hover:text-blue-800 transition"
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(vendor.id)}
+                            className="p-1 text-red-600 hover:text-red-800 transition"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    {expandedVendor === vendor.id && (
+                      <tr className="bg-gray-50">
+                        <td colSpan="8" className="p-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <strong className="text-gray-700">Company:</strong>
+                              <p className="mt-1">{vendor.company || "Not provided"}</p>
+                            </div>
+                            <div>
+                              <strong className="text-gray-700">GSTIN:</strong>
+                              <p className="mt-1">{vendor.gstin}</p>
+                            </div>
+                            <div>
+                              <strong className="text-gray-700">PAN:</strong>
+                              <p className="mt-1">{vendor.pan || "Not provided"}</p>
+                            </div>
+                            <div>
+                              <strong className="text-gray-700">Email:</strong>
+                              <p className="mt-1">{vendor.email || "Not provided"}</p>
+                            </div>
+                            <div>
+                              <strong className="text-gray-700">Alt. Phone:</strong>
+                              <p className="mt-1">{vendor.altPhone || "Not provided"}</p>
+                            </div>
+                            <div>
+                              <strong className="text-gray-700">State:</strong>
+                              <p className="mt-1">{vendor.state || "Not provided"}</p>
+                            </div>
+                            <div>
+                              <strong className="text-gray-700">Bank Account:</strong>
+                              <p className="mt-1">{vendor.bankAccount || "Not provided"}</p>
+                            </div>
+                            <div>
+                              <strong className="text-gray-700">IFSC Code:</strong>
+                              <p className="mt-1">{vendor.ifsc || "Not provided"}</p>
+                            </div>
+                            <div className="md:col-span-2 lg:col-span-3">
+                              <strong className="text-gray-700">Address:</strong>
+                              <p className="mt-1">{vendor.address || "Not provided"}</p>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>

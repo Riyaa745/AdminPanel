@@ -7,7 +7,7 @@ export default function ProductCRUD({ products = [], setProducts = () => {} }) {
     id: null,
     name: "",
     category: "",
-    hsnSac: "",
+    hsnSac: "", // This will be used for HSN/SAC code
     description: "",
   });
   const [isEditing, setIsEditing] = useState(false);
@@ -25,7 +25,7 @@ export default function ProductCRUD({ products = [], setProducts = () => {} }) {
     const errors = {};
     if (!form.name) errors.name = "Name is required";
     if (!form.category) errors.category = "Category is required";
-    if (!form.hsnSac) errors.hsnSac = "HSN/SAC Code is required"; // ✅ added validation
+    if (!form.hsnSac) errors.hsnSac = "HSN/SAC Code is required";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
